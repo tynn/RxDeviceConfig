@@ -1,0 +1,21 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion xTargetSdkVersion
+    buildToolsVersion xBuildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion xTargetSdkVersion
+
+        versionCode 1
+    }
+}
+
+dependencies {
+    compile project(':rxconfig')
+    testCompile "junit:junit:$junitVersion"
+    testCompile "org.mockito:mockito-core:$mockitoVersion"
+    testCompile "org.powermock:powermock-api-mockito:$powermockVersion"
+    testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
+}

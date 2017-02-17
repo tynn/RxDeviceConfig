@@ -1,0 +1,24 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion xTargetSdkVersion
+    buildToolsVersion xBuildToolsVersion
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion xTargetSdkVersion
+
+        versionCode 1
+    }
+}
+
+dependencies {
+    //noinspection GradleDynamicVersion
+    compile 'io.reactivex:rxjava:1.+'
+    //noinspection GradleDynamicVersion
+    provided 'com.android.support:support-annotations:+'
+    testCompile "junit:junit:$junitVersion"
+    testCompile "org.mockito:mockito-core:$mockitoVersion"
+    testCompile "org.powermock:powermock-api-mockito:$powermockVersion"
+    testCompile "org.powermock:powermock-module-junit4:$powermockVersion"
+}
