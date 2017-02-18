@@ -89,7 +89,11 @@ public class RxDeviceConfig implements Observable.OnSubscribe<Configuration> {
         }
     }
 
-    static void emitConfig(Observer<? super Configuration> observer, Context context) {
+    /**
+     * @param observer
+     * @param context
+     */
+    public static void emitConfig(Observer<? super Configuration> observer, Context context) {
         Configuration config = context.getResources().getConfiguration();
         config = new Configuration(config);
         observer.onNext(config);

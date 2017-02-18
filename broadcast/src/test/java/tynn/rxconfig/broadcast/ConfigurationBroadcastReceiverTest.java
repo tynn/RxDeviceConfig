@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig;
+package tynn.rxconfig.broadcast;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
-import android.os.IBinder;
+import android.content.res.Resources;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,54 +31,63 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import rx.observers.TestSubscriber;
+import tynn.rxconfig.RxDeviceConfig;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ConfigurationService.class)
+@PrepareForTest(RxDeviceConfig.class)
 @PowerMockRunnerDelegate(MockitoJUnitRunner.class)
-public class ConfigurationServiceTest {
+public class ConfigurationBroadcastReceiverTest {
 
-    ConfigurationService service;
+    ConfigurationBroadcastReceiver receiver;
     TestSubscriber<Configuration> subscriber;
 
+    @Mock
+    Context context;
+    @Mock
+    Resources resources;
     @Mock
     Configuration configuration;
 
     @Before
     public void setup() throws Exception {
-        service = new ConfigurationService();
         subscriber = TestSubscriber.create();
-        service.observers.add(subscriber);
+        receiver = new ConfigurationBroadcastReceiver(subscriber, context);
+        when(context.getResources()).thenReturn(resources);
+        when(resources.getConfiguration()).thenReturn(configuration);
         whenNew(Configuration.class).withAnyArguments().thenReturn(configuration);
     }
 
     @Test
-    public void onBind() throws Exception {
-        IBinder binder = service.onBind(null);
-
-        assertThat(binder, instanceOf(ConfigurationService.OnRegisterSubscriber.class));
-    }
-
-    @Test
-    public void onUnbind() throws Exception {
-        boolean rebind = service.onUnbind(null);
-
-        assertThat(rebind, is(false));
-        assertThat(service.observers.isEmpty(), is(true));
-    }
-
-    @Test
-    public void onConfigurationChanged() throws Exception {
-        service.onConfigurationChanged(configuration);
+    public void onReceive() throws Exception {
+        receiver.onReceive(context, new Intent());
 
         subscriber.assertNoErrors();
         subscriber.assertNotCompleted();
         subscriber.assertValue(configuration);
         verifyNew(Configuration.class).withArguments(configuration);
+    }
+
+    @Test
+    public void unsubscribe() throws Exception {
+        receiver.unsubscribe();
+
+        verify(context).unregisterReceiver(receiver);
+        assertThat(receiver.isUnsubscribed(), is(true));
+    }
+
+    @Test
+    public void isUnsubscribed() throws Exception {
+        assertThat(receiver.isUnsubscribed(), is(false));
+
+        receiver.unsubscribe();
+
+        assertThat(receiver.isUnsubscribed(), is(true));
     }
 }

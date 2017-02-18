@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig;
+package tynn.rxconfig.broadcast;
 
 import android.content.Context;
-import android.content.Intent;
+import android.content.IntentFilter;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,13 +30,11 @@ import rx.Observer;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.powermock.reflect.Whitebox.getInternalState;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ServiceStrategyTest {
+public class BroadcastStrategyTest {
 
     @Mock
     Context context;
@@ -44,17 +42,17 @@ public class ServiceStrategyTest {
     Observer observer;
 
     @Test
-    @SuppressWarnings("WrongConstant")
     public void call() throws Exception {
-        ServiceStrategy strategy = new ServiceStrategy();
+        BroadcastStrategy strategy = new BroadcastStrategy();
 
-        ConfigurationServiceConnection connection
-                = (ConfigurationServiceConnection) strategy.call(observer, context);
+        ConfigurationBroadcastReceiver receiver
+                = (ConfigurationBroadcastReceiver) strategy.call(observer, context);
 
-        AtomicReference<Context> context = getInternalState(connection, AtomicReference.class);
+        AtomicReference<Context> context = getInternalState(receiver, AtomicReference.class);
         assertThat(context.get(), is(this.context));
-        Observer observer = getInternalState(connection, Observer.class);
+        Observer observer = getInternalState(receiver, Observer.class);
         assertThat(observer, is(this.observer));
-        verify(this.context).bindService(any(Intent.class), eq(connection), eq(Context.BIND_AUTO_CREATE));
+        IntentFilter filter = getInternalState(strategy, IntentFilter.class);
+        verify(this.context).registerReceiver(receiver, filter);
     }
 }

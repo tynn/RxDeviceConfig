@@ -14,44 +14,39 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig;
+package tynn.rxconfig.broadcast;
 
-import android.content.ComponentName;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ServiceConnection;
+import android.content.Intent;
 import android.content.res.Configuration;
-import android.os.IBinder;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 import rx.Observer;
 import rx.Subscription;
+import tynn.rxconfig.RxDeviceConfig;
 
-class ConfigurationServiceConnection implements ServiceConnection, Subscription {
+class ConfigurationBroadcastReceiver extends BroadcastReceiver implements Subscription {
 
     private final AtomicReference<Context> context;
     private final Observer<? super Configuration> observer;
 
-    ConfigurationServiceConnection(Observer<? super Configuration> observer, Context context) {
+    ConfigurationBroadcastReceiver(Observer<? super Configuration> observer, Context context) {
         this.context = new AtomicReference<>(context);
         this.observer = observer;
     }
 
     @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        ((ConfigurationService.OnRegisterSubscriber) service).register(observer);
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        observer.onError(new ServiceDisconnected());
+    public void onReceive(Context context, Intent intent) {
+        RxDeviceConfig.emitConfig(observer, context);
     }
 
     @Override
     public void unsubscribe() {
         Context context = this.context.getAndSet(null);
         if (context != null) {
-            context.unbindService(this);
+            context.unregisterReceiver(this);
         }
     }
 

@@ -20,8 +20,8 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import rx.subscriptions.CompositeSubscription;
-import tynn.rxconfig.BroadcastStrategy;
-import tynn.rxconfig.ServiceStrategy;
+import tynn.rxconfig.broadcast.BroadcastStrategy;
+import tynn.rxconfig.service.ServiceStrategy;
 
 public class MainActivity extends Activity {
 

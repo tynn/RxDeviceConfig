@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig;
+package tynn.rxconfig.service;
 
 import android.app.Service;
 import android.content.Intent;

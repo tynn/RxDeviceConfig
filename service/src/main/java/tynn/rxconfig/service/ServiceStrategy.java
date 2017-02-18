@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig;
+package tynn.rxconfig.service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Configuration;
 
 import rx.Observer;
 import rx.Subscription;
+import tynn.rxconfig.RxDeviceConfig;
 
 /**
  *
  */
-public final class BroadcastStrategy implements RxDeviceConfig.Strategy {
-
-    private final IntentFilter filter = new IntentFilter(Intent.ACTION_CONFIGURATION_CHANGED);
+public final class ServiceStrategy implements RxDeviceConfig.Strategy {
 
     @Override
     public Subscription call(Observer<? super Configuration> observer, Context context) {
-        ConfigurationBroadcastReceiver receiver
-                = new ConfigurationBroadcastReceiver(observer, context);
-        context.registerReceiver(receiver, filter);
-        return receiver;
+        ConfigurationServiceConnection connection
+                = new ConfigurationServiceConnection(observer, context);
+        Intent service = new Intent(context, ConfigurationService.class);
+        context.bindService(service, connection, Context.BIND_AUTO_CREATE);
+        return connection;
     }
 }
