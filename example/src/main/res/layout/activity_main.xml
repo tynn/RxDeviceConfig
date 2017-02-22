@@ -32,6 +32,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:text="Component"
+        android:textAppearance="?android:textAppearanceLarge"
+        tools:context=".MainActivity" />
+
+    <TextView
+        android:id="@+id/component"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:textAppearance="?android:textAppearanceMedium"
+        tools:context=".MainActivity"
+        tools:text="Configuration 2" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="Service"
         android:textAppearance="?android:textAppearanceLarge"
         tools:context=".MainActivity" />
@@ -44,5 +62,5 @@
         android:gravity="center"
         android:textAppearance="?android:textAppearanceMedium"
         tools:context=".MainActivity"
-        tools:text="Configuration 2" />
+        tools:text="Configuration 3" />
 </LinearLayout>

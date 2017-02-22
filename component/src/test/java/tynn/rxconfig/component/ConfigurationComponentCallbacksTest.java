@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig.broadcast;
+package tynn.rxconfig.component;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 
@@ -40,11 +39,11 @@ import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(ConfigurationBroadcastReceiver.class)
+@PrepareForTest(ConfigurationComponentCallbacks.class)
 @PowerMockRunnerDelegate(MockitoJUnitRunner.class)
-public class ConfigurationBroadcastReceiverTest {
+public class ConfigurationComponentCallbacksTest {
 
-    ConfigurationBroadcastReceiver receiver;
+    ConfigurationComponentCallbacks callbacks;
     TestSubscriber<Configuration> subscriber;
 
     @Mock
@@ -57,15 +56,15 @@ public class ConfigurationBroadcastReceiverTest {
     @Before
     public void setup() throws Exception {
         subscriber = TestSubscriber.create();
-        receiver = new ConfigurationBroadcastReceiver(subscriber, context);
+        callbacks = new ConfigurationComponentCallbacks(subscriber, context);
         when(context.getResources()).thenReturn(resources);
         when(resources.getConfiguration()).thenReturn(configuration);
         whenNew(Configuration.class).withAnyArguments().thenReturn(configuration);
     }
 
     @Test
-    public void onReceive() throws Exception {
-        receiver.onReceive(context, new Intent());
+    public void onConfigurationChanged() throws Exception {
+        callbacks.onConfigurationChanged(configuration);
 
         subscriber.assertNoErrors();
         subscriber.assertNotCompleted();
@@ -75,18 +74,18 @@ public class ConfigurationBroadcastReceiverTest {
 
     @Test
     public void unsubscribe() throws Exception {
-        receiver.unsubscribe();
+        callbacks.unsubscribe();
 
-        verify(context).unregisterReceiver(receiver);
-        assertThat(receiver.isUnsubscribed(), is(true));
+        verify(context).unregisterComponentCallbacks(callbacks);
+        assertThat(callbacks.isUnsubscribed(), is(true));
     }
 
     @Test
     public void isUnsubscribed() throws Exception {
-        assertThat(receiver.isUnsubscribed(), is(false));
+        assertThat(callbacks.isUnsubscribed(), is(false));
 
-        receiver.unsubscribe();
+        callbacks.unsubscribe();
 
-        assertThat(receiver.isUnsubscribed(), is(true));
+        assertThat(callbacks.isUnsubscribed(), is(true));
     }
 }

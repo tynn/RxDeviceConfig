@@ -21,6 +21,7 @@ import android.os.Bundle;
 
 import rx.subscriptions.CompositeSubscription;
 import tynn.rxconfig.broadcast.BroadcastStrategy;
+import tynn.rxconfig.component.ComponentStrategy;
 import tynn.rxconfig.service.ServiceStrategy;
 
 public class MainActivity extends Activity {
@@ -34,6 +35,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         subscriptions.add(ConfigObserver.off(this, R.id.broadcast, new BroadcastStrategy()));
+        subscriptions.add(ConfigObserver.off(this, R.id.component, new ComponentStrategy()));
         subscriptions.add(ConfigObserver.off(this, R.id.service, new ServiceStrategy()));
     }
 

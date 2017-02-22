@@ -140,16 +140,4 @@ public class RxDeviceConfigTest {
     public void observe_strategy_null_strategy() throws Exception {
         RxDeviceConfig.observe(context, null);
     }
-
-    @Test
-    public void emitConfig() throws Exception {
-        TestSubscriber<Configuration> subscriber = TestSubscriber.create();
-
-        RxDeviceConfig.emitConfig(subscriber, context);
-
-        subscriber.assertNotCompleted();
-        subscriber.assertNoErrors();
-        subscriber.assertValue(configuration);
-        verifyNew(Configuration.class).withArguments(configuration);
-    }
 }

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package tynn.rxconfig.broadcast;
+package tynn.rxconfig.component;
 
-import android.content.BroadcastReceiver;
+import android.content.ComponentCallbacks;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,27 +25,30 @@ import java.util.concurrent.atomic.AtomicReference;
 import rx.Observer;
 import rx.Subscription;
 
-class ConfigurationBroadcastReceiver extends BroadcastReceiver implements Subscription {
+class ConfigurationComponentCallbacks implements Subscription, ComponentCallbacks {
 
     private final AtomicReference<Context> context;
     private final Observer<? super Configuration> observer;
 
-    ConfigurationBroadcastReceiver(Observer<? super Configuration> observer, Context context) {
+    ConfigurationComponentCallbacks(Observer<? super Configuration> observer, Context context) {
         this.context = new AtomicReference<>(context);
         this.observer = observer;
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-        Configuration config = context.getResources().getConfiguration();
-        observer.onNext(new Configuration(config));
+    public void onConfigurationChanged(Configuration newConfig) {
+        observer.onNext(new Configuration(newConfig));
+    }
+
+    @Override
+    public void onLowMemory() {
     }
 
     @Override
     public void unsubscribe() {
         Context context = this.context.getAndSet(null);
         if (context != null) {
-            context.unregisterReceiver(this);
+            context.unregisterComponentCallbacks(this);
         }
     }
 

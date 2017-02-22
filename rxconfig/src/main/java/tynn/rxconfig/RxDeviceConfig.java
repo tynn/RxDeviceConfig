@@ -44,7 +44,8 @@ public class RxDeviceConfig implements Observable.OnSubscribe<Configuration> {
     public void call(Subscriber<? super Configuration> subscriber) {
         Observer<? super Configuration> observer = new SafeObserver<>(subscriber);
         subscriber.add(strategy.call(observer, context));
-        emitConfig(subscriber, context);
+        Configuration config = context.getResources().getConfiguration();
+        observer.onNext(new Configuration(config));
     }
 
     /**
@@ -87,16 +88,6 @@ public class RxDeviceConfig implements Observable.OnSubscribe<Configuration> {
         if (o == null) {
             throw new NullPointerException(name + " is null");
         }
-    }
-
-    /**
-     * @param observer
-     * @param context
-     */
-    public static void emitConfig(Observer<? super Configuration> observer, Context context) {
-        Configuration config = context.getResources().getConfiguration();
-        config = new Configuration(config);
-        observer.onNext(config);
     }
 
     public interface Strategy extends Func2<Observer<? super Configuration>, Context, Subscription> {
