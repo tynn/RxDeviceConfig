@@ -21,6 +21,8 @@ import android.content.res.Configuration;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.Locale;
+
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
@@ -78,10 +80,29 @@ public class RxDeviceConfig implements Observable.OnSubscribe<Configuration> {
      * @param strategy
      * @return
      */
-    public static Observable<Configuration> observe(@NonNull Context context, @NonNull Strategy strategy) {
+    public static Observable<Configuration> observe(@NonNull Context context,
+                                                    @NonNull Strategy strategy) {
         nonNull(strategy, "strategy");
         nonNull(context, "context");
         return Observable.create(new RxDeviceConfig(context, strategy)).onBackpressureLatest();
+    }
+
+    /**
+     * @param context
+     * @return
+     */
+    public static Observable<Locale> observePrimaryLocale(@NonNull Context context) {
+        return observe(context).map(new ToPrimaryLocale());
+    }
+
+    /**
+     * @param context
+     * @param strategy
+     * @return
+     */
+    public static Observable<Locale> observePrimaryLocale(@NonNull Context context,
+                                                          @NonNull Strategy strategy) {
+        return observe(context, strategy).map(new ToPrimaryLocale());
     }
 
     private static void nonNull(Object o, String name) {

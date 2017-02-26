@@ -19,6 +19,8 @@ package tynn.rxconfig;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +30,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+
+import java.util.Locale;
 
 import rx.observers.TestSubscriber;
 
@@ -116,6 +120,12 @@ public class RxDeviceConfigTest {
         RxDeviceConfig.observe(context);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void observe_null_context() throws Exception {
+        RxDeviceConfig.setDefaultObserveStrategy(new TestStrategy());
+        RxDeviceConfig.observe(null);
+    }
+
     @Test
     public void observe_strategy() throws Exception {
         TestSubscriber<Configuration> subscriber = TestSubscriber.create();
@@ -139,5 +149,62 @@ public class RxDeviceConfigTest {
     @Test(expected = NullPointerException.class)
     public void observe_strategy_null_strategy() throws Exception {
         RxDeviceConfig.observe(context, null);
+    }
+
+    @Test
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void observePrimaryLocale() throws Exception {
+        TestSubscriber<Locale> subscriber = TestSubscriber.create();
+        TestStrategy strategy = new TestStrategy();
+        RxDeviceConfig.setDefaultObserveStrategy(strategy);
+        whenNew(ToPrimaryLocale.class).withNoArguments()
+                .thenReturn(new TestToPrimaryLocale(Locale.FRANCE));
+
+        RxDeviceConfig.observePrimaryLocale(context).subscribe(subscriber).unsubscribe();
+
+        strategy.assertUnsubscribed();
+        subscriber.assertUnsubscribed();
+        subscriber.assertNoErrors();
+        subscriber.assertNotCompleted();
+        subscriber.assertValue(Locale.FRANCE);
+        verifyNew(Configuration.class).withArguments(configuration);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void observePrimaryLocale_no_strategy() throws Exception {
+        RxDeviceConfig.observePrimaryLocale(context);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void observePrimaryLocale_null_context() throws Exception {
+        RxDeviceConfig.setDefaultObserveStrategy(new TestStrategy());
+        RxDeviceConfig.observePrimaryLocale(null);
+    }
+
+    @Test
+    public void observePrimaryLocale_strategy() throws Exception {
+        TestSubscriber<Locale> subscriber = TestSubscriber.create();
+        TestStrategy strategy = new TestStrategy();
+        whenNew(ToPrimaryLocale.class).withNoArguments()
+                .thenReturn(new TestToPrimaryLocale(Locale.ITALY));
+
+        RxDeviceConfig.observePrimaryLocale(context, strategy).subscribe(subscriber).unsubscribe();
+
+        strategy.assertUnsubscribed();
+        subscriber.assertUnsubscribed();
+        subscriber.assertNoErrors();
+        subscriber.assertNotCompleted();
+        subscriber.assertValue(Locale.ITALY);
+        verifyNew(Configuration.class).withArguments(configuration);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void observePrimaryLocale_strategy_null_context() throws Exception {
+        RxDeviceConfig.observePrimaryLocale(null, new TestStrategy());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void observePrimaryLocale_strategy_null_strategy() throws Exception {
+        RxDeviceConfig.observePrimaryLocale(context, null);
     }
 }
