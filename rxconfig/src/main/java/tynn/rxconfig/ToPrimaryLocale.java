@@ -17,7 +17,6 @@
 package tynn.rxconfig;
 
 import android.content.res.Configuration;
-import android.os.Build;
 
 import java.util.Locale;
 
@@ -26,12 +25,7 @@ import rx.functions.Func1;
 class ToPrimaryLocale implements Func1<Configuration, Locale> {
 
     @Override
-    @SuppressWarnings("deprecation")
     public Locale call(Configuration configuration) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return configuration.locale;
-        } else {
-            return configuration.getLocales().get(0);
-        }
+        return RxDeviceConfig.getPrimaryLocale(configuration);
     }
 }

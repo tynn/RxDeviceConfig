@@ -18,6 +18,7 @@ package tynn.rxconfig;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -103,6 +104,19 @@ public class RxDeviceConfig implements Observable.OnSubscribe<Configuration> {
     public static Observable<Locale> observePrimaryLocale(@NonNull Context context,
                                                           @NonNull Strategy strategy) {
         return observe(context, strategy).map(new ToPrimaryLocale());
+    }
+
+    /**
+     * @param configuration to get the primary locale from
+     * @return the primary locale from {@code configuration}
+     */
+    @SuppressWarnings("deprecation")
+    public static Locale getPrimaryLocale(@NonNull Configuration configuration) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return configuration.locale;
+        } else {
+            return configuration.getLocales().get(0);
+        }
     }
 
     private static void nonNull(Object o, String name) {
