@@ -21,12 +21,19 @@ import android.content.res.Configuration;
 
 import rx.Observer;
 import rx.Subscription;
+import rx.functions.Action0;
+import rx.subjects.PublishSubject;
+import rx.subscriptions.CompositeSubscription;
+import rx.subscriptions.Subscriptions;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-class TestStrategy implements RxDeviceConfig.Strategy, Subscription {
+class TestStrategy implements RxDeviceConfig.Strategy, Action0 {
+
+    final CompositeSubscription subscription = new CompositeSubscription();
+    final PublishSubject<Configuration> emitter = PublishSubject.create();
 
     Observer isCalledWithObserver;
     Context isCalledWithContext;
@@ -36,17 +43,14 @@ class TestStrategy implements RxDeviceConfig.Strategy, Subscription {
     public Subscription call(Observer<? super Configuration> observer, Context context) {
         isCalledWithObserver = observer;
         isCalledWithContext = context;
-        return this;
+        subscription.add(Subscriptions.create(this));
+        subscription.add(emitter.subscribe(observer));
+        return subscription;
     }
 
     @Override
-    public void unsubscribe() {
+    public void call() {
         isUnsubscribed = true;
-    }
-
-    @Override
-    public boolean isUnsubscribed() {
-        return isUnsubscribed;
     }
 
     void assertCalledWith(Class<?> observer) {

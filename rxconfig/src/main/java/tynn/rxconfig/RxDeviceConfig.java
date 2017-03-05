@@ -92,6 +92,24 @@ public class RxDeviceConfig implements Observable.OnSubscribe<Configuration> {
      * @param context
      * @return
      */
+    public static Observable<Integer> observeChanges(@NonNull Context context) {
+        return observe(context).lift(new ToConfigurationDiff());
+    }
+
+    /**
+     * @param context
+     * @param strategy
+     * @return
+     */
+    public static Observable<Integer> observeChanges(@NonNull Context context,
+                                                     @NonNull Strategy strategy) {
+        return observe(context, strategy).lift(new ToConfigurationDiff());
+    }
+
+    /**
+     * @param context
+     * @return
+     */
     public static Observable<Locale> observePrimaryLocale(@NonNull Context context) {
         return observe(context).map(new ToPrimaryLocale());
     }

@@ -37,13 +37,14 @@ import rx.observers.TestSubscriber;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.verifyNew;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 import static org.powermock.reflect.Whitebox.invokeConstructor;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(RxDeviceConfig.class)
+@PrepareForTest({RxDeviceConfig.class, ToConfigurationDiffSubscriber.class})
 @PowerMockRunnerDelegate(MockitoJUnitRunner.class)
 public class RxDeviceConfigTest {
 
@@ -59,6 +60,7 @@ public class RxDeviceConfigTest {
         RxDeviceConfig.setDefaultObserveStrategy(null);
         when(context.getResources()).thenReturn(resources);
         when(resources.getConfiguration()).thenReturn(configuration);
+        when(configuration.updateFrom(any(Configuration.class))).thenReturn(2);
         whenNew(Configuration.class).withAnyArguments().thenReturn(configuration);
     }
 
@@ -66,9 +68,9 @@ public class RxDeviceConfigTest {
     public void call() throws Exception {
         TestSubscriber<Configuration> subscriber = TestSubscriber.create();
         TestStrategy strategy = new TestStrategy();
-        RxDeviceConfig rxconfig = invokeConstructor(RxDeviceConfig.class, context, strategy);
+        RxDeviceConfig rxConfig = invokeConstructor(RxDeviceConfig.class, context, strategy);
 
-        rxconfig.call(subscriber);
+        rxConfig.call(subscriber);
         subscriber.unsubscribe();
 
         strategy.assertUnsubscribed();
@@ -149,6 +151,63 @@ public class RxDeviceConfigTest {
     @Test(expected = NullPointerException.class)
     public void observe_strategy_null_strategy() throws Exception {
         RxDeviceConfig.observe(context, null);
+    }
+
+    @Test
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void observeChanges() throws Exception {
+        TestSubscriber<Integer> subscriber = TestSubscriber.create();
+        TestStrategy strategy = new TestStrategy();
+        RxDeviceConfig.setDefaultObserveStrategy(strategy);
+
+        RxDeviceConfig.observeChanges(context).subscribe(subscriber);
+        strategy.emitter.onNext(configuration);
+        subscriber.unsubscribe();
+
+        strategy.assertUnsubscribed();
+        subscriber.assertUnsubscribed();
+        subscriber.assertNoErrors();
+        subscriber.assertNotCompleted();
+        subscriber.assertValue(2);
+        verifyNew(Configuration.class).withArguments(configuration);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void observeChanges_no_strategy() throws Exception {
+        RxDeviceConfig.observeChanges(context);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void observeChanges_null_context() throws Exception {
+        RxDeviceConfig.setDefaultObserveStrategy(new TestStrategy());
+        RxDeviceConfig.observeChanges(null);
+    }
+
+    @Test
+    public void observeChanges_strategy() throws Exception {
+        TestSubscriber<Integer> subscriber = TestSubscriber.create();
+        TestStrategy strategy = new TestStrategy();
+
+        RxDeviceConfig.observeChanges(context, strategy).subscribe(subscriber);
+        strategy.emitter.onNext(configuration);
+        subscriber.unsubscribe();
+
+        strategy.assertUnsubscribed();
+        subscriber.assertUnsubscribed();
+        subscriber.assertNoErrors();
+        subscriber.assertNotCompleted();
+        subscriber.assertValue(2);
+        verifyNew(Configuration.class).withArguments(configuration);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void observeChanges_strategy_null_context() throws Exception {
+        RxDeviceConfig.observeChanges(null, new TestStrategy());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void observeChanges_strategy_null_strategy() throws Exception {
+        RxDeviceConfig.observeChanges(context, null);
     }
 
     @Test
